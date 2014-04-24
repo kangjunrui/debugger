@@ -18,6 +18,7 @@ import java.util.List;
 import org.eclipse.swt.graphics.Image;
 
 import org.eclipse.jface.viewers.ICellEditorValidator;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
@@ -283,4 +284,7 @@ public abstract class Shape extends ModelElement {
 			super.setPropertyValue(propertyId, value);
 		}
 	}
+	
+	public transient int line;
+	public transient IFileEditorInput input;
 }

@@ -22,6 +22,7 @@ import org.eclipse.gef.examples.shapes.parts.DiagramEditPart;
 import org.eclipse.gef.requests.CreateRequest;
 import org.eclipse.gef.requests.CreationFactory;
 import org.eclipse.gef.tools.TargetingTool;
+import org.eclipse.ui.IFileEditorInput;
 
 /**
  * The CreationTool creates new {@link EditPart EditParts} via a
@@ -32,18 +33,30 @@ import org.eclipse.gef.tools.TargetingTool;
  */
 public class ShapeTool extends TargetingTool {
 
-	private CreationFactory factory=new CreationFactory(){
+	private ShapeFactory factory;
+	public abstract static class ShapeFactory implements CreationFactory{
+		private ShapeTool tool;
 
 		@Override
 		public Object getNewObject() {
-			DiagramEditPart diagrampart=(DiagramEditPart)getCurrentViewer().getRootEditPart().getContents();
-			String[] selection=((ShapesDiagram)diagrampart.getModel()).getEditor().getSelection();
-			Shape[] newShapes=new Shape[selection.length];
-			int i=0;
-			for (String str:selection){
-				Shape shape=new RectangularShape();
-				shape.setName(str);
-				newShapes[i++]=shape;
+			DiagramEditPart diagrampart=(DiagramEditPart)tool.getCurrentViewer().getRootEditPart().getContents();
+			Object selection=((ShapesDiagram)diagrampart.getModel()).getEditor().getSelection();
+			Shape[] newShapes;
+			if (selection instanceof String[]){
+				String[] stra=(String[])selection;
+				newShapes=getObject(stra.length);
+				int i=0;
+				for (String str:stra){
+					Shape shape=newShapes[i++];
+					shape.setName(str);
+				}
+			}else{
+				newShapes=getObject(1);
+				Object[] params=(Object[])selection;
+				Shape shape=newShapes[0];
+				shape.setName((String)params[0]);
+				shape.input=(IFileEditorInput)params[1];
+				shape.line=(int)params[2];
 			}
 			return newShapes;
 		}
@@ -53,17 +66,28 @@ public class ShapeTool extends TargetingTool {
 			return Shape[].class;
 		}
 		
+		protected abstract Shape[] getObject(int num);
+
+		public void setTool(ShapeTool tool) {
+			this.tool=tool;
+		}
 	};
 	private SnapToHelper helper;
 
 	/**
 	 * Default constructor. Sets the default and disabled cursors.
 	 */
-	public ShapeTool() {
+	public ShapeTool(ShapeFactory factory) {
+		this.factory=factory;
+		factory.setTool(this);
 		setDefaultCursor(SharedCursors.CURSOR_TREE_MOVE);
 		setDisabledCursor(SharedCursors.NO);
 	}
 
+	@Override
+	public EditPartViewer getCurrentViewer() {
+		return super.getCurrentViewer();
+	}
 
 	/**
 	 * Creates a {@link CreateRequest} and sets this tool's factory on the
@@ -263,16 +287,6 @@ public class ShapeTool extends TargetingTool {
 			}
 		}
 		viewer.flush();
-	}
-
-	/**
-	 * Sets the creation factory used to create the new edit parts.
-	 * 
-	 * @param factory
-	 *            the factory
-	 */
-	public void setFactory(CreationFactory factory) {
-		this.factory = factory;
 	}
 
 	/**

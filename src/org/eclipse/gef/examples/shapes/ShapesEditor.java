@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -57,6 +58,7 @@ import org.eclipse.ui.actions.WorkspaceModifyOperation;
 import org.eclipse.ui.dialogs.SaveAsDialog;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.IPageSite;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.ContentOutline;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -64,6 +66,8 @@ import org.eclipse.gef.ContextMenuProvider;
 import org.eclipse.gef.DefaultEditDomain;
 import org.eclipse.gef.EditPartViewer;
 import org.eclipse.gef.GraphicalViewer;
+import org.eclipse.gef.KeyHandler;
+import org.eclipse.gef.KeyStroke;
 import org.eclipse.gef.SnapToGrid;
 import org.eclipse.gef.dnd.TemplateTransferDragSourceListener;
 import org.eclipse.gef.dnd.TemplateTransferDropTargetListener;
@@ -72,6 +76,7 @@ import org.eclipse.gef.palette.PaletteRoot;
 import org.eclipse.gef.requests.CreationFactory;
 import org.eclipse.gef.requests.SimpleFactory;
 import org.eclipse.gef.ui.actions.ActionRegistry;
+import org.eclipse.gef.ui.actions.GEFActionConstants;
 import org.eclipse.gef.ui.actions.ToggleGridAction;
 import org.eclipse.gef.ui.palette.PaletteViewer;
 import org.eclipse.gef.ui.palette.PaletteViewerProvider;
@@ -135,6 +140,16 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 		getSite().registerContextMenu(cmProvider, viewer);
 		
 		getActionRegistry().registerAction(new ToggleGridAction(viewer));
+		
+		/*KeyHandler keyHandler = new KeyHandler();
+		keyHandler.put(
+		KeyStroke.getPressed(SWT.DEL, 127, 0),
+		getActionRegistry().getAction(ActionFactory.DELETE.getId()));
+		keyHandler.put(
+		KeyStroke.getPressed('+', SWT.KEYPAD_ADD, 0),
+		getActionRegistry().getAction(GEFActionConstants.ZOOM_IN));
+		
+		viewer.setKeyHandler(keyHandler);*/
 	}
 
 	IWorkbenchPart part=null;
@@ -196,7 +211,7 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 		}
 	};
 	
-	public String[] getSelection(){
+	public Object getSelection(){
 		if (part!=null){
 			if (part instanceof ContentOutline){
 				if (names!=null)
@@ -230,7 +245,18 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 				ISelection sel=provider.getSelection();
 				if (sel!=null && sel instanceof org.eclipse.jface.text.TextSelection){
 					org.eclipse.jface.text.TextSelection textsel=((org.eclipse.jface.text.TextSelection)sel);
-					return new String[]{textsel.getText()};
+					
+					if (part instanceof ITextEditor){
+						//show file and line
+						int currentLine= textsel.getStartLine(); //start from 0
+						ITextEditor editor= (ITextEditor)part;
+						IEditorInput input=editor.getEditorInput();
+						if (input instanceof IFileEditorInput){
+							return new Object[]{textsel.getText(), input, currentLine};
+						}
+					}
+					
+					return new Object[]{textsel.getText(), null, 0};
 				}
 			}
 		}

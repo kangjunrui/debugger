@@ -24,6 +24,8 @@ import org.eclipse.draw2d.FigureCanvas;
 import org.eclipse.draw2d.FlowLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
+import org.eclipse.draw2d.MouseEvent;
+import org.eclipse.draw2d.MouseListener;
 import org.eclipse.draw2d.RectangleFigure;
 import org.eclipse.draw2d.StackLayout;
 import org.eclipse.draw2d.geometry.Dimension;
@@ -56,6 +58,8 @@ import org.eclipse.gef.examples.shapes.model.RectangularShape;
 import org.eclipse.gef.examples.shapes.model.Shape;
 import org.eclipse.gef.examples.shapes.model.commands.ConnectionCreateCommand;
 import org.eclipse.gef.examples.shapes.model.commands.ConnectionReconnectCommand;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
@@ -65,6 +69,14 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * EditPart used for Shape instances (more specific for EllipticalShape and
@@ -77,7 +89,7 @@ import org.eclipse.swt.widgets.Text;
  * @author Elias Volanakis
  */
 class ShapeEditPart extends AbstractGraphicalEditPart implements
-		PropertyChangeListener, NodeEditPart {
+		PropertyChangeListener, NodeEditPart, MouseListener {
 
 	private ConnectionAnchor anchor;
 	
@@ -249,6 +261,7 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 		Rectangle bounds = new Rectangle(getCastedModel().getLocation(),
 				getLabelSize());
 		actualFigure.setBounds(bounds);
+		actualFigure.addMouseListener(this);
 		
 		return actualFigure;
 	}
@@ -437,6 +450,39 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 			manager.show();
 		}
 	}
+
+
+	@Override
+	public void mousePressed(MouseEvent me) {
+		Shape model = getCastedModel();
+		if ((me.getState()&me.ALT)!=0 && model.input!=null){
+			//System.out.println("file:"+(model.input).getFile().getFullPath()+" line:"+model.line);
+			IEditorPart t=null;
+			try {
+				t=IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),getCastedModel().input.getFile(), false);
+			} catch (PartInitException e) {
+				e.printStackTrace();
+			}
+			if (t!=null && t instanceof ITextEditor){
+				ITextEditor editor = (ITextEditor)t;
+				IDocumentProvider provider= editor.getDocumentProvider();
+				IDocument document= provider.getDocument(editor.getEditorInput());
+				try {
+
+					int start= document.getLineOffset(getCastedModel().line);
+					editor.selectAndReveal(start, 0);
+				} catch (BadLocationException x) {
+					x.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent me) {}
 	
-	
+	@Override
+	public void mouseDoubleClicked(MouseEvent me) {
+
+	}
 }

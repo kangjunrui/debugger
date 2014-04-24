@@ -12,6 +12,7 @@ package org.eclipse.gef.examples.shapes;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 
+import org.eclipse.gef.Tool;
 import org.eclipse.gef.palette.CombinedTemplateCreationEntry;
 import org.eclipse.gef.palette.ConnectionCreationToolEntry;
 import org.eclipse.gef.palette.MarqueeToolEntry;
@@ -27,6 +28,7 @@ import org.eclipse.gef.requests.SimpleFactory;
 import org.eclipse.gef.examples.shapes.model.Connection;
 import org.eclipse.gef.examples.shapes.model.EllipticalShape;
 import org.eclipse.gef.examples.shapes.model.RectangularShape;
+import org.eclipse.gef.examples.shapes.model.Shape;
 
 /**
  * Utility class that can create a GEF Palette.
@@ -40,15 +42,47 @@ final class ShapesEditorPaletteFactory {
 	private static PaletteContainer createShapesDrawer() {
 		PaletteDrawer componentsDrawer = new PaletteDrawer("Shapes");
 
-		ToolEntry shape = new ToolEntry(
+		ToolEntry shape1 = new ToolEntry(
 				"Shapes", "Create shapes", 
 				ImageDescriptor.createFromFile(ShapesPlugin.class,
 						"icons/rectangle16.gif"),
 				ImageDescriptor.createFromFile(ShapesPlugin.class,
-						"icons/rectangle24.gif"),
-						ShapeTool.class){};
-		componentsDrawer.add(shape);
+						"icons/rectangle24.gif")){@Override
+						public Tool createTool() {
+							return new ShapeTool(new ShapeTool.ShapeFactory(){
+								@Override
+								protected Shape[] getObject(int num) {
+									RectangularShape[] shapes=new RectangularShape[num];
+									for (int i=0;i<num;i++){
+										shapes[i]=new RectangularShape();
+									}
+									return shapes;
+								}
+							});
+						}};
+		componentsDrawer.add(shape1);
 
+		ToolEntry shape2 = new ToolEntry(
+				"Shapes", "Create shapes", 
+				ImageDescriptor.createFromFile(ShapesPlugin.class,
+						"icons/ellipse16.gif"),
+				ImageDescriptor.createFromFile(ShapesPlugin.class,
+						"icons/ellipse24.gif")){
+			public Tool createTool() {
+				return new ShapeTool(new ShapeTool.ShapeFactory(){
+					@Override
+					protected Shape[] getObject(int num) {
+						EllipticalShape[] shapes=new EllipticalShape[num];
+						for (int i=0;i<num;i++){
+							shapes[i]=new EllipticalShape();
+						}
+						return shapes;
+					}
+				});
+			}
+		};
+		componentsDrawer.add(shape2);
+		
 		/*
 		ToolEntry container = new ToolEntry("Rectangle", "Create a rectangular shape", 
 				ImageDescriptor.createFromFile(ShapesPlugin.class,

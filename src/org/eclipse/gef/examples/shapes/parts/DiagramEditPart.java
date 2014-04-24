@@ -25,6 +25,7 @@ import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 
+import org.eclipse.gef.AutoexposeHelper;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.EditPolicy;
 import org.eclipse.gef.LayerConstants;
@@ -32,6 +33,7 @@ import org.eclipse.gef.SnapToGrid;
 import org.eclipse.gef.SnapToHelper;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
+import org.eclipse.gef.editparts.ViewportAutoexposeHelper;
 import org.eclipse.gef.editpolicies.NonResizableEditPolicy;
 import org.eclipse.gef.editpolicies.ResizableEditPolicy;
 import org.eclipse.gef.editpolicies.RootComponentEditPolicy;
@@ -75,6 +77,7 @@ public class DiagramEditPart extends AbstractGraphicalEditPart implements
 			super.activate();
 			((ModelElement) getModel()).addPropertyChangeListener(this);
 			snapToGrid=new SnapToGrid(this);
+			//exposeHelper=new ViewportAutoexposeHelper(this);
 		}
 	}
 
@@ -216,11 +219,14 @@ public class DiagramEditPart extends AbstractGraphicalEditPart implements
 	}
 
 	SnapToHelper snapToGrid;
+	//AutoexposeHelper exposeHelper;
 	@Override
 	public Object getAdapter(Class key) {
 		if (key==SnapToHelper.class && snapToGrid!=null){
 			return snapToGrid;
-		}
+		}/*else if (key==AutoexposeHelper.class && exposeHelper!=null){
+			return exposeHelper;
+		}*/
 		return super.getAdapter(key);
 	}
 }
