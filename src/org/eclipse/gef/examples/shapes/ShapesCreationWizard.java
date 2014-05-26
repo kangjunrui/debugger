@@ -16,6 +16,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.eclipse.swt.widgets.Composite;
 
 import org.eclipse.core.resources.IFile;
@@ -29,6 +39,8 @@ import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
 import org.eclipse.ui.ide.IDE;
 
 import org.eclipse.gef.examples.shapes.model.ShapesDiagram;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Create new new .shape-file. Those files can be used with the ShapesEditor
@@ -143,19 +155,47 @@ public class ShapesCreationWizard extends Wizard implements INewWizard {
 		 * org.eclipse.ui.dialogs.WizardNewFileCreationPage#getInitialContents()
 		 */
 		protected InputStream getInitialContents() {
-			ByteArrayInputStream bais = null;
 			try {
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ObjectOutputStream oos = new ObjectOutputStream(baos);
-				oos.writeObject(createDefaultContent()); // argument must be
-															// Serializable
-				oos.flush();
-				oos.close();
-				bais = new ByteArrayInputStream(baos.toByteArray());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				Document doc = null;
+				Element root = null;
+				try {
+					DocumentBuilderFactory factory = DocumentBuilderFactory
+							.newInstance();
+					DocumentBuilder builder = factory.newDocumentBuilder();
+					doc = builder.newDocument();
+					root = doc.createElement("diagram");
+					doc.appendChild(root);
+				} catch (Exception e) {
+					e.printStackTrace();
+					return null;// 如果出现异常，则不再往下执行
+				}
+				
+				TransformerFactory tf = TransformerFactory.newInstance();
+				Transformer transformer;
+				try {
+					transformer = tf.newTransformer();
+				} catch (TransformerConfigurationException e) {
+					e.printStackTrace();
+					return null;
+				}
+				DOMSource source = new DOMSource(doc);
+				transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+				transformer.setOutputProperty(OutputKeys.INDENT, "yes");// 设置文档的换行与缩进
+				StreamResult result = new StreamResult(out);
+				try {
+					transformer.transform(source, result);
+				} catch (TransformerException e) {
+					e.printStackTrace();
+					return null;
+				}
+				out.flush();
+				out.close();
+				return new ByteArrayInputStream(out.toByteArray());
 			} catch (IOException ioe) {
 				ioe.printStackTrace();
+				return null;
 			}
-			return bais;
 		}
 
 		/**

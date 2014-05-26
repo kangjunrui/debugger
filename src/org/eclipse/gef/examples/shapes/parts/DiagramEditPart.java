@@ -12,6 +12,7 @@ package org.eclipse.gef.examples.shapes.parts;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.draw2d.ConnectionLayer;
@@ -20,15 +21,21 @@ import org.eclipse.draw2d.FreeformLayer;
 import org.eclipse.draw2d.FreeformLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.MarginBorder;
+import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.ShortestPathConnectionRouter;
+import org.eclipse.draw2d.Viewport;
 import org.eclipse.draw2d.geometry.Dimension;
+import org.eclipse.draw2d.geometry.Insets;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 
 import org.eclipse.gef.AutoexposeHelper;
+import org.eclipse.gef.DragTracker;
 import org.eclipse.gef.EditPart;
 import org.eclipse.gef.EditPolicy;
+import org.eclipse.gef.GraphicalEditPart;
 import org.eclipse.gef.LayerConstants;
+import org.eclipse.gef.Request;
 import org.eclipse.gef.SnapToGrid;
 import org.eclipse.gef.SnapToHelper;
 import org.eclipse.gef.commands.Command;
@@ -40,6 +47,8 @@ import org.eclipse.gef.editpolicies.RootComponentEditPolicy;
 import org.eclipse.gef.editpolicies.XYLayoutEditPolicy;
 import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gef.requests.CreateRequest;
+import org.eclipse.gef.tools.MarqueeSelectionTool;
+import org.eclipse.gef.tools.TargetingTool;
 
 import org.eclipse.gef.examples.shapes.model.EllipticalShape;
 import org.eclipse.gef.examples.shapes.model.ModelElement;
@@ -48,6 +57,7 @@ import org.eclipse.gef.examples.shapes.model.Shape;
 import org.eclipse.gef.examples.shapes.model.ShapesDiagram;
 import org.eclipse.gef.examples.shapes.model.commands.ShapeCreateCommand;
 import org.eclipse.gef.examples.shapes.model.commands.ShapeSetConstraintCommand;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -106,8 +116,10 @@ public class DiagramEditPart extends AbstractGraphicalEditPart implements
 		Figure f = new FreeformLayer();
 		f.setBorder(new MarginBorder(3));
 		f.setLayoutManager(new FreeformLayout());
-
+		
 		// Create the static router for the connection layer
+		// Can set a router which support all algorithms and different alg has diff color
+		// connections can have groupid which will make start segment be one line.
 		ConnectionLayer connLayer = (ConnectionLayer) getLayer(LayerConstants.CONNECTION_LAYER);
 		connLayer.setConnectionRouter(new ShortestPathConnectionRouter(f));
 
@@ -206,9 +218,11 @@ public class DiagramEditPart extends AbstractGraphicalEditPart implements
 				return new ShapeCreateCommand((Shape[])request.getNewObject(),
 						(ShapesDiagram) getHost().getModel(),
 						request, DiagramEditPart.this.getFigure());
-			}/*else if (childClass == EllipticalShape.class){
-				request.getLocation();
-			}*/
+			}else if (childClass == RectangularShape.class){
+				return new ShapeCreateCommand(new Shape[]{(Shape)request.getNewObject()},
+						(ShapesDiagram) getHost().getModel(),
+						request, DiagramEditPart.this.getFigure());
+			}
 			return null;
 		}
 
@@ -219,14 +233,19 @@ public class DiagramEditPart extends AbstractGraphicalEditPart implements
 	}
 
 	SnapToHelper snapToGrid;
-	//AutoexposeHelper exposeHelper;
+	DragTracker dragtracker;
+	
 	@Override
 	public Object getAdapter(Class key) {
 		if (key==SnapToHelper.class && snapToGrid!=null){
 			return snapToGrid;
-		}/*else if (key==AutoexposeHelper.class && exposeHelper!=null){
-			return exposeHelper;
-		}*/
+		}
 		return super.getAdapter(key);
+	}	
+	
+	public DragTracker getDragTracker(Request req) {
+		if (dragtracker==null)
+			dragtracker=new DiagramEditPartDragTracker();
+		return dragtracker;
 	}
 }

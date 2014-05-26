@@ -24,4 +24,16 @@
          <selection class="org.eclipse.core.resources.IResource"/>
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="false"
+            category="org.eclipse.ui"
+            class="org.eclipse.gef.examples.shapes.ZoomView"
+            icon="shapes_zoom.gif"
+            id="shapes.zoomview"
+            name="Zoom View"
+            restorable="false">
+      </view>
+   </extension>
 </plugin>

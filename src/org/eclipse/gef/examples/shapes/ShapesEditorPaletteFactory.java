@@ -24,6 +24,7 @@ import org.eclipse.gef.palette.PanningSelectionToolEntry;
 import org.eclipse.gef.palette.ToolEntry;
 import org.eclipse.gef.requests.CreationFactory;
 import org.eclipse.gef.requests.SimpleFactory;
+import org.eclipse.gef.tools.CreationTool;
 
 import org.eclipse.gef.examples.shapes.model.Connection;
 import org.eclipse.gef.examples.shapes.model.EllipticalShape;
@@ -82,7 +83,7 @@ final class ShapesEditorPaletteFactory {
 			}
 		};
 		componentsDrawer.add(shape2);
-		
+			
 		/*
 		ToolEntry container = new ToolEntry("Rectangle", "Create a rectangular shape", 
 				ImageDescriptor.createFromFile(ShapesPlugin.class,
@@ -108,6 +109,12 @@ final class ShapesEditorPaletteFactory {
 		return palette;
 	}
 
+	public static class DragTool extends CreationTool{
+		{
+			setUnloadWhenFinished(false);
+		}
+	}
+	
 	/** Create the "Tools" group. */
 	private static PaletteContainer createToolsGroup(PaletteRoot palette) {
 		PaletteToolbar toolbar = new PaletteToolbar("Tools");
@@ -117,8 +124,18 @@ final class ShapesEditorPaletteFactory {
 		toolbar.add(tool);
 		palette.setDefaultEntry(tool);
 
-		// Add a marquee tool to the group
-		toolbar.add(new MarqueeToolEntry());
+		tool = new ToolEntry("Rectangle",
+				"Create a rectangular shape",
+				ImageDescriptor.createFromFile(ShapesPlugin.class,
+						"icons/rectangle16.gif"),
+				ImageDescriptor.createFromFile(ShapesPlugin.class,
+						"icons/rectangle24.gif"),
+						DragTool.class){
+			{
+				setToolProperty(DragTool.PROPERTY_CREATION_FACTORY, new SimpleFactory(RectangularShape.class));
+			}
+		};
+		toolbar.add(tool);
 
 		// Add (solid-line) connection tool
 		tool = new ConnectionCreationToolEntry("Solid connection",
@@ -139,8 +156,8 @@ final class ShapesEditorPaletteFactory {
 		toolbar.add(tool);
 
 		// Add (dashed-line) connection tool
-		tool = new ConnectionCreationToolEntry("Dashed connection",
-				"Create a dashed-line connection", new CreationFactory() {
+		tool = new ConnectionCreationToolEntry("Dot connection",
+				"Create a dot-line connection", new CreationFactory() {
 					public Object getNewObject() {
 						return null;
 					}
@@ -148,7 +165,7 @@ final class ShapesEditorPaletteFactory {
 					// see ShapeEditPart#createEditPolicies()
 					// this is abused to transmit the desired line style
 					public Object getObjectType() {
-						return Connection.DASHED_CONNECTION;
+						return Connection.DOT_CONNECTION;
 					}
 				}, ImageDescriptor.createFromFile(ShapesPlugin.class,
 						"icons/connection_d16.gif"),

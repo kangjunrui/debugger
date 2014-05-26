@@ -10,14 +10,24 @@
 ?*******************************************************************************/
 package org.eclipse.gef.examples.shapes;
 
+import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.action.Separator;
 import org.eclipse.ui.actions.ActionFactory;
 
+import org.eclipse.gef.examples.shapes.actions.SyncAction;
+import org.eclipse.gef.examples.shapes.actions.SyncRetargetAction;
 import org.eclipse.gef.ui.actions.ActionBarContributor;
+import org.eclipse.gef.ui.actions.CopyRetargetAction;
 import org.eclipse.gef.ui.actions.DeleteRetargetAction;
+import org.eclipse.gef.ui.actions.GEFActionConstants;
+import org.eclipse.gef.ui.actions.PasteRetargetAction;
 import org.eclipse.gef.ui.actions.RedoRetargetAction;
 import org.eclipse.gef.ui.actions.ToggleGridAction;
 import org.eclipse.gef.ui.actions.UndoRetargetAction;
+import org.eclipse.gef.ui.actions.ZoomComboContributionItem;
+import org.eclipse.gef.ui.actions.ZoomInRetargetAction;
+import org.eclipse.gef.ui.actions.ZoomOutRetargetAction;
 
 /**
  * Contributes actions to a toolbar. This class is tied to the editor in the
@@ -34,9 +44,16 @@ public class ShapesEditorActionBarContributor extends ActionBarContributor {
 	 */
 	protected void buildActions() {
 		addRetargetAction(new DeleteRetargetAction());
+		
+		addRetargetAction(new CopyRetargetAction());
+		addRetargetAction(new PasteRetargetAction());
 		addRetargetAction(new UndoRetargetAction());
 		addRetargetAction(new RedoRetargetAction());
 		
+		addRetargetAction(new SyncRetargetAction());
+		
+		addRetargetAction(new ZoomInRetargetAction());
+		addRetargetAction(new ZoomOutRetargetAction());
 	}
 
 	/**
@@ -47,6 +64,14 @@ public class ShapesEditorActionBarContributor extends ActionBarContributor {
 	public void contributeToToolBar(IToolBarManager toolBarManager) {
 		toolBarManager.add(getAction(ActionFactory.UNDO.getId()));
 		toolBarManager.add(getAction(ActionFactory.REDO.getId()));
+		toolBarManager.add(getAction(ActionFactory.COPY.getId()));
+		toolBarManager.add(getAction(ActionFactory.PASTE.getId()));
+		toolBarManager.add(getAction(ActionFactory.DELETE.getId()));
+		toolBarManager.add(getAction(SyncAction.ID));
+		toolBarManager.add(new Separator());
+		toolBarManager.add(getAction(GEFActionConstants.ZOOM_IN));
+		toolBarManager.add(getAction(GEFActionConstants.ZOOM_OUT));
+		toolBarManager.add(new ZoomComboContributionItem(getPage()));
 	}
 
 	/*

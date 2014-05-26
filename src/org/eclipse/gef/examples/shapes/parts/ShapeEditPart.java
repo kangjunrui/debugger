@@ -14,6 +14,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.draw2d.ChopboxAnchor;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.ConnectionAnchor;
@@ -26,12 +31,16 @@ import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.MouseEvent;
 import org.eclipse.draw2d.MouseListener;
+import org.eclipse.draw2d.PositionConstants;
 import org.eclipse.draw2d.RectangleFigure;
 import org.eclipse.draw2d.StackLayout;
+import org.eclipse.draw2d.Viewport;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Insets;
+import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.draw2d.geometry.Rectangle;
 
+import org.eclipse.gef.AutoexposeHelper;
 import org.eclipse.gef.ConnectionEditPart;
 import org.eclipse.gef.DragTracker;
 import org.eclipse.gef.EditPolicy;
@@ -43,6 +52,7 @@ import org.eclipse.gef.SnapToGrid;
 import org.eclipse.gef.SnapToHelper;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.editparts.AbstractGraphicalEditPart;
+import org.eclipse.gef.editparts.ViewportAutoexposeHelper;
 import org.eclipse.gef.editpolicies.GraphicalNodeEditPolicy;
 import org.eclipse.gef.requests.ChangeBoundsRequest;
 import org.eclipse.gef.requests.CreateConnectionRequest;
@@ -63,9 +73,9 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
@@ -88,8 +98,8 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * 
  * @author Elias Volanakis
  */
-class ShapeEditPart extends AbstractGraphicalEditPart implements
-		PropertyChangeListener, NodeEditPart, MouseListener {
+public class ShapeEditPart extends AbstractGraphicalEditPart implements
+		PropertyChangeListener, NodeEditPart{
 
 	private ConnectionAnchor anchor;
 	
@@ -202,7 +212,7 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 	protected IFigure createFigure() {
 		IFigure f = createFigureForModel();
 		f.setOpaque(true); // non-transparent figure
-		f.setBackgroundColor(ColorConstants.green);
+		f.setBackgroundColor(getCastedModel().diagram.getColor(getCastedModel().getColor()));
 		return f;
 	}
 
@@ -222,12 +232,12 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 	}
 	
 	Label m_name;
+	org.eclipse.draw2d.Shape actualFigure=null;
 	/**
 	 * Return a IFigure depending on the instance of the current model element.
 	 * This allows this EditPart to be used for both sublasses of Shape.
 	 */
 	private IFigure createFigureForModel() {
-		org.eclipse.draw2d.Shape actualFigure=null;
 		if (getModel() instanceof EllipticalShape) {
 			actualFigure = new Ellipse();
 		} else if (getModel() instanceof RectangularShape) {
@@ -248,8 +258,9 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 			}
 		};
 
-		m_name.setText(getCastedModel().getName());
+		//m_name.setText(getCastedModel().getName());
 		m_name.setFont(FONT_USER_NAME);
+		setShowfilename(getShowfilename());
 		m_name.setForegroundColor(ColorConstants.black);
 		m_name.setOpaque(false);
 		m_name.setVisible(true);
@@ -261,11 +272,33 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 		Rectangle bounds = new Rectangle(getCastedModel().getLocation(),
 				getLabelSize());
 		actualFigure.setBounds(bounds);
-		actualFigure.addMouseListener(this);
 		
 		return actualFigure;
 	}
 
+	public boolean getShowfilename(){
+		return getCastedModel().showfilename;
+	}
+	
+	public boolean setShowfilename(boolean state){
+		boolean oldstate=getCastedModel().showfilename;
+		if (state && getCastedModel().editor==-1)
+			return oldstate;
+		if (state){
+			String name=getCastedModel().diagram.getFile(getCastedModel().editor);
+			int index1=name.lastIndexOf(".");
+			int index2=name.lastIndexOf("/", index1-1);
+			m_name.setText(name.substring(index2+1, index1)+"."+getCastedModel().getName());
+		}else{
+			m_name.setText(getCastedModel().getName());
+		}
+		getCastedModel().showfilename=state;
+		Rectangle bounds = new Rectangle(getCastedModel().getLocation(),
+				getLabelSize());
+		actualFigure.setBounds(bounds);
+		return state;
+	}
+	
 	public Dimension getLabelSize(){
 		if (m_name!=null)
 			return m_name.getPreferredSize(-1, -1).expand(1, 1);
@@ -285,7 +318,7 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 		}
 	}
 
-	private Shape getCastedModel() {
+	public Shape getCastedModel() {
 		return (Shape) getModel();
 	}
 
@@ -386,10 +419,16 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 			refreshTargetConnections();
 		} else if (Shape.NAME_PROP.equals(prop)) {
 			if (m_name!=null){
-				m_name.setText((String)evt.getNewValue());
+				//m_name.setText((String)evt.getNewValue());
+				setShowfilename(getShowfilename());
 				getFigure().setSize(m_name.getSize());
 				refreshVisuals();
 			}
+		} else if (Shape.COLOR_PROP.equals(prop)) {
+			//actualFigure
+			Color oldcolor=actualFigure.getBackgroundColor();
+			actualFigure.setBackgroundColor(getCastedModel().diagram.getColor(getCastedModel().getColor()));
+			getCastedModel().diagram.ungetColor(oldcolor);
 		}
 	}
 
@@ -407,19 +446,12 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 	
 	@Override
 	public DragTracker getDragTracker(Request request) {
-		return new org.eclipse.gef.tools.DragEditPartsTracker(this){
-			@Override
-			protected void updateTargetRequest() {
-				ChangeBoundsRequest request = (ChangeBoundsRequest) getTargetRequest();
-				request.setSnapToEnabled(true);
-				super.updateTargetRequest();
-			}
-		};
+		return new ShapeEditPartsDragTracker(this);
 	}
-	
+
 	private DirectEditManager manager;
 	public void performRequest(Request request) {
-		if (request.getType() == RequestConstants.REQ_OPEN) {
+		if (request.getType() == RequestConstants.REQ_DIRECT_EDIT) {
 			if (manager == null) {
 				manager = new DirectEditManager(this, TextCellEditor.class, new CellEditorLocator(){
 					@Override
@@ -432,7 +464,7 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 						scrollWidth = canvas.getViewport().getHorizontalRangeModel().getValue();
 						scrollHeight = canvas.getViewport().getVerticalRangeModel().getValue();
 
-						Point pref = text.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+						org.eclipse.swt.graphics.Point pref = text.computeSize(SWT.DEFAULT, SWT.DEFAULT);
 						Rectangle rect = ShapeEditPart.this.m_name.getTextBounds();	//得到覆盖的文本label
 						text.setBounds(rect.x - 1 - scrollWidth, rect.y - 1 - scrollHeight,
 								pref.x + 1, pref.y + 1);
@@ -443,46 +475,29 @@ class ShapeEditPart extends AbstractGraphicalEditPart implements
 				    }
 					@Override
 					protected void initCellEditor() { 
-						getCellEditor().setValue(m_name.getText());
+						getCellEditor().setValue(getCastedModel().getName());
 					}
 				};
 			}
 			manager.show();
-		}
-	}
+		}else if (request.getType() == RequestConstants.REQ_OPEN) {
+			Shape model = getCastedModel();
+			if (model.editor!=-1){
+				IEditorPart t=model.diagram.getEditor(model.editor);
+				if (t!=null && t instanceof ITextEditor){
+					t.getEditorSite().getPage().bringToTop(t);
+					ITextEditor editor = (ITextEditor)t;
+					IDocumentProvider provider= editor.getDocumentProvider();
+					IDocument document= provider.getDocument(editor.getEditorInput());
+					try {
 
-
-	@Override
-	public void mousePressed(MouseEvent me) {
-		Shape model = getCastedModel();
-		if ((me.getState()&me.ALT)!=0 && model.input!=null){
-			//System.out.println("file:"+(model.input).getFile().getFullPath()+" line:"+model.line);
-			IEditorPart t=null;
-			try {
-				t=IDE.openEditor(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage(),getCastedModel().input.getFile(), false);
-			} catch (PartInitException e) {
-				e.printStackTrace();
-			}
-			if (t!=null && t instanceof ITextEditor){
-				ITextEditor editor = (ITextEditor)t;
-				IDocumentProvider provider= editor.getDocumentProvider();
-				IDocument document= provider.getDocument(editor.getEditorInput());
-				try {
-
-					int start= document.getLineOffset(getCastedModel().line);
-					editor.selectAndReveal(start, 0);
-				} catch (BadLocationException x) {
-					x.printStackTrace();
+						int start= document.getLineOffset(getCastedModel().line);
+						editor.selectAndReveal(start, 0);
+					} catch (BadLocationException x) {
+						x.printStackTrace();
+					}
 				}
 			}
 		}
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent me) {}
-	
-	@Override
-	public void mouseDoubleClicked(MouseEvent me) {
-
 	}
 }

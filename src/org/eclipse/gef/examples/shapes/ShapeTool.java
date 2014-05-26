@@ -40,7 +40,8 @@ public class ShapeTool extends TargetingTool {
 		@Override
 		public Object getNewObject() {
 			DiagramEditPart diagrampart=(DiagramEditPart)tool.getCurrentViewer().getRootEditPart().getContents();
-			Object selection=((ShapesDiagram)diagrampart.getModel()).getEditor().getSelection();
+			ShapesDiagram diagram=(ShapesDiagram)diagrampart.getModel();
+			Object selection=diagram.getEditor().getSelection();
 			Shape[] newShapes;
 			if (selection instanceof String[]){
 				String[] stra=(String[])selection;
@@ -49,14 +50,17 @@ public class ShapeTool extends TargetingTool {
 				for (String str:stra){
 					Shape shape=newShapes[i++];
 					shape.setName(str);
+					//shape.editor=
 				}
 			}else{
 				newShapes=getObject(1);
 				Object[] params=(Object[])selection;
 				Shape shape=newShapes[0];
 				shape.setName((String)params[0]);
-				shape.input=(IFileEditorInput)params[1];
-				shape.line=(int)params[2];
+				int editor=diagram.addFile((String)params[1], (String)params[2]);
+				diagram.refEditor(editor);
+				shape.editor=editor;
+				shape.line=(Integer)params[3];
 			}
 			return newShapes;
 		}

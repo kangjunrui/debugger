@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 
 import org.eclipse.jface.viewers.ICellEditorValidator;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.views.properties.ColorPropertyDescriptor;
 import org.eclipse.ui.views.properties.IPropertyDescriptor;
 import org.eclipse.ui.views.properties.PropertyDescriptor;
 import org.eclipse.ui.views.properties.TextPropertyDescriptor;
@@ -60,6 +62,7 @@ public abstract class Shape extends ModelElement {
 
 
 	public static final String NAME_PROP = "Shape.Name";
+	public static final String COLOR_PROP = "Shape.Color";
 	/**
 	 * ID for the X property value (used for by the corresponding property
 	 * descriptor).
@@ -83,11 +86,12 @@ public abstract class Shape extends ModelElement {
 	static {
 		descriptors = new IPropertyDescriptor[] {
 				new TextPropertyDescriptor(NAME_PROP, "Name"),
+				new ColorPropertyDescriptor(COLOR_PROP, "Color"),
 				new TextPropertyDescriptor(XPOS_PROP, "X"), // id and
 															// description pair
 				new TextPropertyDescriptor(YPOS_PROP, "Y")};
 		// use a custom cell editor validator for next four array entries
-		for (int i = 1; i < descriptors.length; i++) {
+		for (int i = 2; i < descriptors.length; i++) {
 			((PropertyDescriptor) descriptors[i])
 					.setValidator(new ICellEditorValidator() {
 						public String isValid(Object value) {
@@ -118,7 +122,7 @@ public abstract class Shape extends ModelElement {
 	private String name="shape";
 	/** Location of this shape. */
 	private Point location = new Point(0, 0);
-
+	private RGB color = new RGB(0,255,0);
 	/** List of outgoing Connections. */
 	private List sourceConnections = new ArrayList();
 	/** List of incoming Connections. */
@@ -166,6 +170,10 @@ public abstract class Shape extends ModelElement {
 		return this.name;
 	}
 	
+	public RGB getColor(){
+		return this.color;
+	}
+	
 	/**
 	 * Returns an array of IPropertyDescriptors for this shape.
 	 * <p>
@@ -195,6 +203,9 @@ public abstract class Shape extends ModelElement {
 		if (NAME_PROP.equals(propertyId)) {
 			return this.name;
 		}
+		if (COLOR_PROP.equals(propertyId)) {
+			return this.color;
+		}		
 		if (XPOS_PROP.equals(propertyId)) {
 			return Integer.toString(location.x);
 		}
@@ -259,6 +270,12 @@ public abstract class Shape extends ModelElement {
 		this.name=name;
 		firePropertyChange(NAME_PROP, null, name);
 	}
+	
+	public void setColor(RGB color){
+		this.color=color;
+		firePropertyChange(COLOR_PROP, null, color);
+	}
+	
 	/**
 	 * Set the property value for the given property id. If no matching id is
 	 * found, the call is forwarded to the superclass.
@@ -274,6 +291,9 @@ public abstract class Shape extends ModelElement {
 		if (NAME_PROP.equals(propertyId)) {
 			String name = (String) value;
 			setName(name);
+		} else if (COLOR_PROP.equals(propertyId)) {
+			RGB color = (RGB) value;
+			setColor(color);
 		} else if (XPOS_PROP.equals(propertyId)) {
 			int x = Integer.parseInt((String) value);
 			setLocation(new Point(x, location.y));
@@ -285,6 +305,10 @@ public abstract class Shape extends ModelElement {
 		}
 	}
 	
-	public transient int line;
-	public transient IFileEditorInput input;
+	public ShapesDiagram diagram;
+	public String filename; //used when removed and then undo
+	public int editor=-1;
+	public int line;
+	
+	public boolean showfilename=false;
 }

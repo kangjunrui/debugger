@@ -35,13 +35,13 @@ public class Connection extends ModelElement {
 	 * 
 	 * @see org.eclipse.gef.examples.shapes.parts.ShapeEditPart#createEditPolicies()
 	 */
-	public static final Integer DASHED_CONNECTION = new Integer(
-			Graphics.LINE_DASH);
+	public static final Integer DOT_CONNECTION = new Integer(
+			Graphics.LINE_DOT);
 	/** Property ID to use when the line style of this connection is modified. */
 	public static final String LINESTYLE_PROP = "LineStyle";
 	private static final IPropertyDescriptor[] descriptors = new IPropertyDescriptor[1];
 	private static final String SOLID_STR = "Solid";
-	private static final String DASHED_STR = "Dashed";
+	private static final String DOT_STR = "Dot";
 	private static final long serialVersionUID = 1;
 
 	/** True, if the connection is attached to its endpoints. */
@@ -55,7 +55,7 @@ public class Connection extends ModelElement {
 
 	static {
 		descriptors[0] = new ComboBoxPropertyDescriptor(LINESTYLE_PROP,
-				LINESTYLE_PROP, new String[] { SOLID_STR, DASHED_STR });
+				LINESTYLE_PROP, new String[] { SOLID_STR, DOT_STR });
 	}
 
 	/**
@@ -109,7 +109,7 @@ public class Connection extends ModelElement {
 	 */
 	public Object getPropertyValue(Object id) {
 		if (id.equals(LINESTYLE_PROP)) {
-			if (getLineStyle() == Graphics.LINE_DASH)
+			if (getLineStyle() == Graphics.LINE_DOT)
 				// Dashed is the second value in the combo dropdown
 				return new Integer(1);
 			// Solid is the first value in the combo dropdown
@@ -174,15 +174,15 @@ public class Connection extends ModelElement {
 	 * Set the line drawing style of this connection.
 	 * 
 	 * @param lineStyle
-	 *            one of following values: Graphics.LINE_DASH or
+	 *            one of following values: Graphics.LINE_DOT or
 	 *            Graphics.LINE_SOLID
-	 * @see Graphics#LINE_DASH
+	 * @see Graphics#LINE_DOT
 	 * @see Graphics#LINE_SOLID
 	 * @throws IllegalArgumentException
 	 *             if lineStyle does not have one of the above values
 	 */
 	public void setLineStyle(int lineStyle) {
-		if (lineStyle != Graphics.LINE_DASH && lineStyle != Graphics.LINE_SOLID) {
+		if (lineStyle != Graphics.LINE_DOT && lineStyle != Graphics.LINE_SOLID) {
 			throw new IllegalArgumentException();
 		}
 		this.lineStyle = lineStyle;
@@ -197,7 +197,7 @@ public class Connection extends ModelElement {
 	 */
 	public void setPropertyValue(Object id, Object value) {
 		if (id.equals(LINESTYLE_PROP))
-			setLineStyle(new Integer(1).equals(value) ? Graphics.LINE_DASH
+			setLineStyle(new Integer(1).equals(value) ? Graphics.LINE_DOT
 					: Graphics.LINE_SOLID);
 		else
 			super.setPropertyValue(id, value);

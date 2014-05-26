@@ -16,6 +16,7 @@ import org.eclipse.ui.actions.ActionFactory;
 
 import org.eclipse.gef.ContextMenuProvider;
 import org.eclipse.gef.EditPartViewer;
+import org.eclipse.gef.examples.shapes.actions.LabelStateAction;
 import org.eclipse.gef.ui.actions.ActionRegistry;
 import org.eclipse.gef.ui.actions.GEFActionConstants;
 
@@ -66,6 +67,16 @@ class ShapesEditorContextMenuProvider extends ContextMenuProvider {
 				getAction(ActionFactory.REDO.getId()));
 		menu.appendToGroup(GEFActionConstants.GROUP_EDIT,
 				getAction(ActionFactory.DELETE.getId()));
+		menu.appendToGroup(GEFActionConstants.GROUP_VIEW,
+				getAction(LabelStateAction.ID));
+		menu.appendToGroup(GEFActionConstants.GROUP_COPY,
+				getAction(ActionFactory.COPY.getId()));
+		menu.appendToGroup(GEFActionConstants.GROUP_COPY,
+				getAction(ActionFactory.PASTE.getId()));
+		menu.appendToGroup(GEFActionConstants.GROUP_REST,
+				getAction("getaction"));
+		menu.appendToGroup(GEFActionConstants.GROUP_REST,
+				getAction("setaction"));
 	}
 
 	private IAction getAction(String actionId) {
