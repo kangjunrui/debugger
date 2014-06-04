@@ -69,12 +69,14 @@ public class ShapesDiagram extends ModelElement {
 	}
 	
 	public void ungetColor(Color color){
-		int count=colorcount.get(color);
-		if (count==1){
-			colorcount.remove(color);
-			colormap.remove(color.getRGB());
-		}else{
-			colorcount.put(color, count-1);
+		Integer count=colorcount.get(color);
+		if (count!=null){
+			if (count==1){
+				colorcount.remove(color);
+				colormap.remove(color.getRGB());
+			}else{
+				colorcount.put(color, count-1);
+			}
 		}
 	}
 	

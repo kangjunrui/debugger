@@ -24,6 +24,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -138,6 +139,7 @@ import org.eclipse.gef.ui.parts.ContentOutlinePage;
 import org.eclipse.gef.ui.parts.GraphicalEditorWithFlyoutPalette;
 import org.eclipse.gef.ui.parts.GraphicalViewerKeyHandler;
 import org.eclipse.gef.ui.parts.TreeViewer;
+import org.eclipse.gef.examples.shapes.properties.UndoablePropertySheetPage;
 
 import org.eclipse.gef.examples.shapes.actions.ClipboardConnection;
 import org.eclipse.gef.examples.shapes.actions.ClipboardDiagram;
@@ -261,6 +263,11 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 	ZoomViewPage zoom;
 	
 	public Object getAdapter(Class type) {
+		if (type == org.eclipse.ui.views.properties.IPropertySheetPage.class) {
+			return new UndoablePropertySheetPage(getCommandStack(),
+					getActionRegistry().getAction(ActionFactory.UNDO.getId()),
+					getActionRegistry().getAction(ActionFactory.REDO.getId()));
+		}
 		if (type == ZoomManager.class)
 			return ((ScalableFreeformRootEditPart) getGraphicalViewer()
 					.getRootEditPart()).getZoomManager();
@@ -480,6 +487,7 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 
 	IWorkbenchPart part = null;
 	IViewPart explorer;
+
 	IPartListener listener = new IPartListener() {
 
 		@Override
@@ -511,7 +519,7 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 
 		@Override
 		public void partBroughtToTop(IWorkbenchPart part) {
-			partActivated(part);
+			partActivated(part);	
 		}
 
 		@Override
