@@ -487,7 +487,6 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 
 	IWorkbenchPart part = null;
 	IViewPart explorer;
-
 	IPartListener listener = new IPartListener() {
 
 		@Override
@@ -515,11 +514,13 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 			if (part instanceof PackageExplorerPart){
 				explorer = null;
 			}
+
 		}
 
 		@Override
 		public void partBroughtToTop(IWorkbenchPart part) {
-			partActivated(part);	
+			partActivated(part);
+
 		}
 
 		@Override
@@ -527,6 +528,7 @@ public class ShapesEditor extends GraphicalEditorWithFlyoutPalette {
 			if (!(part instanceof ShapesEditor) && part instanceof IEditorPart) {
 				ShapesEditor.this.part = part;
 			}
+
 		}
 	};
 

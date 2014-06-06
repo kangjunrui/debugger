@@ -35,5 +35,12 @@
             name="Zoom View"
             restorable="false">
       </view>
+      <view
+            class="org.eclipse.gef.examples.shapes.OutlineView"
+            icon="outline_co.gif"
+            id="testshapes.outline"
+            name="Outline 2"
+            restorable="true">
+      </view>
    </extension>
 </plugin>

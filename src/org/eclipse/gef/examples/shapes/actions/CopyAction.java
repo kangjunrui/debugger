@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.ISharedImages;
@@ -26,7 +30,6 @@ import org.eclipse.gef.internal.GEFMessages;
 import org.eclipse.gef.palette.CombinedTemplateCreationEntry;
 import org.eclipse.gef.palette.PaletteTemplateEntry;
 import org.eclipse.gef.requests.GroupRequest;
-import org.eclipse.gef.ui.actions.Clipboard;
 import org.eclipse.gef.ui.actions.SelectionAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -44,6 +47,9 @@ public class CopyAction extends SelectionAction {
 	/** @deprecated Use ActionFactory.DELETE.getId() instead. */
 	public static final String ID = ActionFactory.COPY.getId();
 	ShapesEditor editor;
+	
+	static Clipboard clipboard = new Clipboard(Display.getCurrent());
+	static String lineSeperator = System.lineSeparator();
 	
 	public CopyAction(ShapesEditor editor) {
 		super((IWorkbenchPart) editor);
@@ -94,6 +100,8 @@ public class CopyAction extends SelectionAction {
 	public void run() {
 		if (GlobalData==null) GlobalData=new ClipboardDiagram();
 		synchronized(GlobalData){
+			StringBuilder data = new StringBuilder();
+
 			ClipboardDiagram diagram=new ClipboardDiagram();
 			diagram.shapes=new ArrayList<ClipboardShape>();
 			diagram.connections=new ArrayList<ClipboardConnection>();
@@ -116,6 +124,16 @@ public class CopyAction extends SelectionAction {
 				shape.color=shapemodel.getColor();
 				diagram.shapes.add(shape);
 				shapemap.put(shapemodel, shape);
+				
+				if (shapemodel.editor!=-1 && shape.showfilename){
+					String name=shape.file;
+					int index1=name.lastIndexOf(".");
+					int index2=name.lastIndexOf("/", index1-1);
+					data.append(name.substring(index2+1, index1)+"."+shape.name);
+				}else{
+					data.append(shape.name);
+				}
+				data.append(lineSeperator);
 			}
 			for (Shape shapemodel: shapes){
 				List<Connection> conns=shapemodel.getSourceConnections();
@@ -132,6 +150,10 @@ public class CopyAction extends SelectionAction {
 			GlobalData = diagram;
 			GlobalLocation = new Point(0, 0);
 			editor.updatePasteAction();
+			if (data.length() > 0) {
+				clipboard.setContents(new Object[] { data.toString() },
+						new Transfer[] { TextTransfer.getInstance() });
+			}
 		}
 //		Clipboard clipboard = new Clipboard(display);
 //		String plainText = "Hello World";
