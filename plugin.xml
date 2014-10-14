@@ -3,24 +3,47 @@
 <plugin>
 
      <extension point="org.eclipse.ui.editors">
-      <editor name="GEF Shapes Example"
+      <editor name="Shape Example"
               extensions="shapes"
               icon="shapes.gif"
               default="true"
-              class="org.eclipse.gef.examples.shapes.ShapesEditor"
-              contributorClass="org.eclipse.gef.examples.shapes.ShapesEditorActionBarContributor"
-              id="GEF Shapes Editor">
+              class="debugger.shapes.ShapesEditor"
+              contributorClass="debugger.shapes.ShapesEditorActionBarContributor"
+              id="Debugger Shapes Editor">
+      </editor>
+      <editor name="Debugger Shape"
+              extensions="ds"
+              icon="shapes.gif"
+              default="true"
+              class="debugger.shapes.ShapesEditor"
+              contributorClass="debugger.shapes.ShapesEditorActionBarContributor"
+              id="Debugger Shapes Editor">
+      </editor>
+      <editor name="Debugger Schedule"
+              extensions="dsc"
+              icon="schedules.png"
+              default="true"
+              class="debugger.schedules.SchedulesEditor"
+              contributorClass="debugger.schedules.SchedulesEditorActionBarContributor"
+              id="Debugger Schedules Editor">
       </editor>
    </extension>
    <extension point="org.eclipse.ui.newWizards">
-      <category name="Examples"
+      <category name="Debugger"
                 parentCategory="org.eclipse.ui.Examples"
-                id="org.eclipse.gef.examples"/>
+                id="debugger"/>
       <wizard name="Shapes Diagram"
               icon="shapes.gif"
-              category="org.eclipse.ui.Examples/org.eclipse.gef.examples"
-              class="org.eclipse.gef.examples.shapes.ShapesCreationWizard"
-              id="org.eclipse.gef.examples.shapes.ShapesCreationWizard">
+              category="debugger"
+              class="debugger.shapes.ShapesCreationWizard"
+              id="debugger.shapes.ShapesCreationWizard">
+         <selection class="org.eclipse.core.resources.IResource"/>
+      </wizard>
+            <wizard name="Schedules Diagram"
+              icon="schedules.png"
+              category="debugger"
+              class="debugger.schedules.SchedulesCreationWizard"
+              id="debugger.schedules.SchedulesCreationWizard">
          <selection class="org.eclipse.core.resources.IResource"/>
       </wizard>
    </extension>
